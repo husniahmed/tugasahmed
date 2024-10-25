@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pemantau Keuangan Pribadi</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #e9ecef;
+            margin: 0;
+            padding: 0;
+            color: #343a40;
+        }
+
+        header {
+            background-color: #007bff;
+            padding: 20px;
+            text-align: center;
+            color: white;
+            font-size: 30px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .container {
+            padding: 30px;
+            max-width: 800px;
+            margin: auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 20px;
+        }
+
+        input[type="text"], input[type="number"], select {
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            font-size: 16px;
+            width: 100%;
+        }
+
+        .button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            width: 100%;
+        }
+
+        .button:hover {
+            background-color: #0056b3;
+        }
+
+        h2 {
+            color: #007bff;
+            margin-bottom: 10px;
+        }
+
+        .summary {
+            display: flex;
+            justify-content: space-between;
+            background-color: #f1f3f5;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .transaction-table {
+            margin-top: 20px;
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .transaction-table th, .transaction-table td {
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            text-align: left;
+        }
+
+        .transaction-table th {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .transaction-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        footer {
+            background-color: #007bff;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            position: relative;
+            bottom: 0;
+            width: 100%;
+            margin-top: 20px;
+            border-top: 3px solid #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    Pemantau Keuangan Pribadi
+</header>
+
+<div class="container">
+    <h2>Tambah Transaksi</h2>
+    
+    <div class="form-group">
+        <input type="text" id="description" placeholder="Deskripsi Transaksi" required>
+        <input type="number" id="amount" placeholder="Jumlah (Rp)" required>
+        <select id="type">
+            <option value="income">Pemasukan</option>
+            <option value="expense">Pengeluaran</option>
+        </select>
+        <button class="button" onclick="addTransaction()">Tambah Transaksi</button>
+    </div>
+
+    <h2>Ringkasan Keuangan</h2>
+    <div class="summary">
+        <div>Total Pemasukan: <strong id="totalIncome">Rp 0</strong></div>
+        <div>Total Pengeluaran: <strong id="totalExpense">Rp 0</strong></div>
+        <div>Saldo: <strong id="balance">Rp 0</strong></div>
+    </div>
+
+    <h2>Daftar Transaksi</h2>
+    <table class="transaction-table">
+        <thead>
+            <tr>
+                <th>Deskripsi</th>
+                <th>Jumlah</th>
+                <th>Tipe</th>
+                <th>Aksi</th>
+            </tr>
+        </thead>
+        <tbody id="transactionBody">
+            <tr>
+                <td colspan="4" style="text-align: center;">Belum ada transaksi.</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<footer>
+    AHMED HUSNI HIRAKEL (2255201186)
+</footer>
+
+<script>
+    let transactions = [];
+
+    function addTransaction() {
+        const description = document.getElementById('description').value;
+        const amount = parseFloat(document.getElementById('amount').value);
+        const type = document.getElementById('type').value;
+
+        if (description && !isNaN(amount)) {
+            transactions.push({ description, amount, type });
+            updateTransactionTable();
+            updateSummary();
+            resetForm();
+        } else {
+            alert("Silakan masukkan deskripsi dan jumlah yang valid.");
+        }
+    }
+
+    function updateTransactionTable() {
+        const transactionBody = document.getElementById('transactionBody');
+        transactionBody.innerHTML = ''; // Clear existing rows
+
+        transactions.forEach((transaction, index) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${transaction.description}</td>
+                <td>Rp ${transaction.amount}</td>
+                <td>${transaction.type === 'income' ? 'Pemasukan' : 'Pengeluaran'}</td>
+                <td>
+                    <button class="button" onclick="deleteTransaction(${index})">Hapus</button>
+                </td>
+            `;
+            transactionBody.appendChild(row);
+        });
+
+        if (transactions.length === 0) {
+            transactionBody.innerHTML = '<tr><td colspan="4" style="text-align: center;">Belum ada transaksi.</td></tr>';
+        }
+    }
+
+    function updateSummary() {
+        const totalIncome = transactions
+            .filter(t => t.type === 'income')
+            .reduce((acc, t) => acc + t.amount, 0);
+        const totalExpense = transactions
+            .filter(t => t.type === 'expense')
+            .reduce((acc, t) => acc + t.amount, 0);
+        const balance = totalIncome - totalExpense;
+
+        document.getElementById('totalIncome').textContent = `Rp ${totalIncome}`;
+        document.getElementById('totalExpense').textContent = `Rp ${totalExpense}`;
+        document.getElementById('balance').textContent = `Rp ${balance}`;
+    }
+
+    function resetForm() {
+        document.getElementById('description').value = '';
+        document.getElementById('amount').value = '';
+        document.getElementById('type').value = 'income';
+    }
+
+    function deleteTransaction(index) {
+        transactions.splice(index, 1);
+        updateTransactionTable();
+        updateSummary();
+    }
+</script>
+
+</body>
+</html>
